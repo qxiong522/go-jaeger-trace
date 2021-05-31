@@ -2,7 +2,7 @@ package tracemid
 
 import (
 	"context"
-	trace "go-qx-trace"
+	trace "github.com/qxiong-522/go-qx-trace"
 	"strings"
 
 	"github.com/opentracing/opentracing-go"

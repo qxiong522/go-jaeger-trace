@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"go-qx-trace"
+	"github.com/qxiong-522/go-qx-trace"
 	"net/http"
 
 	"github.com/opentracing/opentracing-go"

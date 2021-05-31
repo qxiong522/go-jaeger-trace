@@ -1,7 +1,7 @@
 package tracemid
 
 import (
-	trace "go-qx-trace"
+	trace "github.com/qxiong-522/go-qx-trace"
 
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
