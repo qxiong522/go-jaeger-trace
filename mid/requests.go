@@ -10,7 +10,7 @@ import (
 	"github.com/opentracing/opentracing-go/ext"
 	tracerLog "github.com/opentracing/opentracing-go/log"
 
-	trace "github.com/qxiong522/go-qx-trace"
+	trace "github.com/qxiong522/go-jaeger-trace"
 )
 
 func SetReqTraceMid() *reqTrace {

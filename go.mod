@@ -1,4 +1,4 @@
-module github.com/qxiong522/go-qx-trace
+module github.com/qxiong522/go-jaeger-trace
 
 go 1.16
 

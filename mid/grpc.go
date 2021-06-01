@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 
-	trace "github.com/qxiong522/go-qx-trace"
+	trace "github.com/qxiong522/go-jaeger-trace"
 )
 
 const (
