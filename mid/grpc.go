@@ -2,7 +2,6 @@ package tracemid
 
 import (
 	"context"
-	trace "github.com/qxiong-522/go-qx-trace"
 	"strings"
 
 	"github.com/opentracing/opentracing-go"
@@ -10,6 +9,8 @@ import (
 	tracerLog "github.com/opentracing/opentracing-go/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
+
+	trace "github.com/qxiong522/go-qx-trace"
 )
 
 const (

@@ -4,12 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/qxiong-522/go-qx-trace"
 	"net/http"
 
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	tracerLog "github.com/opentracing/opentracing-go/log"
+
+	trace "github.com/qxiong522/go-qx-trace"
 )
 
 func SetReqTraceMid() *reqTrace {

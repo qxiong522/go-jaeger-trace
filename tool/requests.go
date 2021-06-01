@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	tracemid "go-qx-trace/mid"
+	tracemid "github.com/qxiong522/go-qx-trace/mid"
 )
 
 type (

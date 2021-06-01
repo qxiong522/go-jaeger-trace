@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql/driver"
 	"fmt"
-	trace "github.com/qxiong-522/go-qx-trace"
 	"reflect"
 	"strconv"
 	"strings"
@@ -15,6 +14,8 @@ import (
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	tracerLog "github.com/opentracing/opentracing-go/log"
+
+	trace "github.com/qxiong522/go-qx-trace"
 )
 
 const (

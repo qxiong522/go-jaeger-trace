@@ -1,12 +1,11 @@
 package tracemid
 
 import (
-	trace "github.com/qxiong-522/go-qx-trace"
+	trace "github.com/qxiong522/go-qx-trace"
 
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	tracerLog "github.com/opentracing/opentracing-go/log"
-
 	"gorm.io/gorm"
 )
 
