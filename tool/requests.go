@@ -19,24 +19,54 @@ type (
 	}
 )
 
-func SendRequestWithTrace(ctx context.Context, method, url string, data map[string]interface{}) (*http.Response, error) {
-	return SendRequest(ctx, method, url, data, tracemid.SetReqTraceMid())
+type (
+	Option func(opts *reqOptions)
+
+	reqOptions struct {
+		client     *http.Client
+		timeout    int
+		middleware []RequestMiddleware
+	}
+)
+
+func WithReqMiddle(reqMids ...RequestMiddleware) Option {
+	return func(opts *reqOptions) {
+		for _, reqMid := range reqMids {
+			opts.middleware = append(opts.middleware, reqMid)
+		}
+	}
 }
 
-func SendRequest(ctx context.Context, method, url string, data map[string]interface{}, reqOpt ...RequestMiddleware) (*http.Response, error) {
+func WithReqMiddleTimeout(timeout int) Option {
+	return func(opts *reqOptions) {
+		if timeout > 0 {
+			opts.timeout = timeout
+		}
+	}
+}
+
+func WithReqClient(client *http.Client) Option {
+	return func(opts *reqOptions) {
+		if client != nil {
+			opts.client = client
+		}
+	}
+}
+
+func SendRequestWithTrace(ctx context.Context, method, url string, data map[string]interface{}, reqOpt ...Option) (*http.Response, error) {
+	reqOpt = append(reqOpt, WithReqMiddle(tracemid.SetReqTraceMid()))
+	return SendRequest(ctx, method, url, data, reqOpt...)
+}
+
+func SendRequest(ctx context.Context, method, url string, data map[string]interface{}, reqOpts ...Option) (*http.Response, error) {
+	opts := buildOpts(reqOpts...)
+
 	var (
 		err  error
 		req  *http.Request
 		resp *http.Response
 	)
-	// 跳过https证书校验
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	client := &http.Client{
-		Timeout:   time.Duration(5) * time.Second,
-		Transport: tr,
-	}
+
 	//请求数据
 	byteDates, err := json.Marshal(data)
 	if err != nil {
@@ -49,7 +79,7 @@ func SendRequest(ctx context.Context, method, url string, data map[string]interf
 		return nil, err
 	}
 
-	for _, middleware := range reqOpt {
+	for _, middleware := range opts.middleware {
 		req, err = middleware.ReqMid(ctx, req)
 		if err != nil {
 			log.Printf("warnnig: called req middleware start failed, err:%v\n", err)
@@ -58,18 +88,43 @@ func SendRequest(ctx context.Context, method, url string, data map[string]interf
 	}
 
 	//发送请求
-	resp, err = client.Do(req)
+	resp, err = opts.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, middleware := range reqOpt {
+	for _, middleware := range opts.middleware {
 		resp, err = middleware.RespMid(ctx, resp)
 		if err != nil {
-			log.Printf("called req middleware end failed, err:%v\n", err)
+			log.Printf("warnning: called req middleware end failed, err:%v\n", err)
 			continue
 		}
 	}
 
 	return resp, nil
+}
+
+func buildOpts(opts ...Option) *reqOptions {
+	options := newDefaultOpts()
+	for _, opt := range opts {
+		opt(options)
+	}
+	return options
+}
+
+func newDefaultOpts() *reqOptions {
+	defaultTimeout := 5
+	// 跳过https证书校验
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	defaultClient := &http.Client{
+		Timeout:   time.Duration(defaultTimeout) * time.Second,
+		Transport: tr,
+	}
+	return &reqOptions{
+		client:     defaultClient,
+		timeout:    defaultTimeout,
+		middleware: make([]RequestMiddleware, 0),
+	}
 }

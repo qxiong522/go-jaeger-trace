@@ -9,12 +9,11 @@ import (
 	tracerLog "github.com/opentracing/opentracing-go/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
-
-	trace "github.com/qxiong522/go-jaeger-trace"
 )
 
 const (
-	grpcOperationName = "grpc_request"
+	grpcClientComponent = "gRPC_Client"
+	grpcServerComponent = "gRPC_Server"
 )
 
 // MDReaderWriter metadata不存在ForeachKey成员方法，这里需要重新声明实现
@@ -61,9 +60,9 @@ func GRPCServerTracerInterceptor(ctx context.Context, req interface{}, info *grp
 	} else {
 		// 如果请求有带 trace id 则生成
 		parentSpan = opentracing.StartSpan(
-			"grpc:"+info.FullMethod,
+			"grpc_"+info.FullMethod,
 			opentracing.ChildOf(spanContext),
-			opentracing.Tag{Key: string(ext.Component), Value: "GRPC_Server"},
+			opentracing.Tag{Key: string(ext.Component), Value: grpcServerComponent},
 			ext.SpanKindRPCServer,
 		)
 		defer parentSpan.Finish()
@@ -76,18 +75,12 @@ func GRPCServerTracerInterceptor(ctx context.Context, req interface{}, info *grp
 func GRPCClientTracerInterceptor(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn,
 	invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 
-	spanContext := ctx.Value(trace.TRACER_PARENT_SPAN_CTX_KEY)
-	if spanContext == nil {
-		// todo: 警告
-		return nil
-	}
-
-	span := opentracing.StartSpan(
-		grpcOperationName,
-		opentracing.ChildOf(spanContext.(opentracing.SpanContext)),
-		opentracing.Tag{Key: string(ext.Component), Value: "GRPC_Client"},
+	span, _ := opentracing.StartSpanFromContext(ctx, "grpc_"+method,
+		opentracing.Tag{Key: string(ext.Component), Value: grpcClientComponent},
+		opentracing.Tag{Key: "method", Value: method},
 		ext.SpanKindRPCClient,
 	)
+
 	defer span.Finish()
 
 	md, ok := metadata.FromOutgoingContext(ctx)

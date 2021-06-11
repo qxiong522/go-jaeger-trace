@@ -9,29 +9,19 @@ import (
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	tracerLog "github.com/opentracing/opentracing-go/log"
-
-	trace "github.com/qxiong522/go-jaeger-trace"
 )
 
 func SetReqTraceMid() *reqTrace {
-	return &reqTrace{operationName: "requests"}
+	return &reqTrace{}
 }
 
 type reqTrace struct {
-	span          opentracing.Span
-	operationName string
+	span opentracing.Span
 }
 
 func (m *reqTrace) ReqMid(ctx context.Context, req *http.Request) (*http.Request, error) {
-	parentSpanContext := ctx.Value(trace.TRACER_PARENT_SPAN_CTX_KEY)
-	if parentSpanContext == nil {
-		return req, errors.New("Get parentSpanCtx failed from context with not exist ")
-	}
-
-	subSpan := opentracing.StartSpan(
-		m.operationName,
-		opentracing.ChildOf(parentSpanContext.(opentracing.SpanContext)),
-		opentracing.Tag{Key: string(ext.Component), Value: "HTTP"},
+	subSpan, _ := opentracing.StartSpanFromContext(ctx, req.Method+"_request",
+		opentracing.Tag{Key: string(ext.Component), Value: "request"},
 		opentracing.Tag{Key: "url", Value: req.URL},
 		opentracing.Tag{Key: "method", Value: req.Method},
 		ext.SpanKindRPCClient,

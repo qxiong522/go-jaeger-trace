@@ -1,8 +1,6 @@
 package tracemid
 
 import (
-	trace "github.com/qxiong522/go-jaeger-trace"
-
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	tracerLog "github.com/opentracing/opentracing-go/log"
@@ -10,16 +8,12 @@ import (
 )
 
 func before(db *gorm.DB) {
-	// 先从父级spans生成子span
-	parentSpan := db.Statement.Context.Value(trace.TRACER_PARENT_SPAN_CTX_KEY)
-	subSpan := opentracing.StartSpan(
-		gormOperationName,
-		opentracing.ChildOf(parentSpan.(opentracing.SpanContext)),
-		opentracing.Tag{Key: string(ext.Component), Value: "gorm"},
+	span, _ := opentracing.StartSpanFromContext(db.Statement.Context, gormOperationName,
+		opentracing.Tag{Key: string(ext.Component), Value: gormComponent},
 		ext.SpanKindRPCClient,
 	)
 	// 利用db实例去传递span
-	db.InstanceSet(gormSpanKey, subSpan)
+	db.InstanceSet(gormSpanKey, span)
 	return
 }
 

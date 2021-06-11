@@ -14,45 +14,45 @@ import (
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	tracerLog "github.com/opentracing/opentracing-go/log"
-
-	trace "github.com/qxiong522/go-jaeger-trace"
 )
 
 const (
 	gormSpanKey        = "_gorm_span"
 	callBackBeforeName = "gorm_tracer:before"
 	callBackAfterName  = "gorm_tracer:after"
-	gormOperationName  = "gorm"
+
+	gormOperationName = "gorm_operate"
+	gormComponent     = "gorm"
 )
 
 func beforeV1(scope *gorm.Scope) {
 	// 先从父级spans生成子span
-	ctx, ok := scope.DB().Get("ctx")
+	iCtx, ok := scope.DB().Get("ctx")
 	if !ok {
 		return
 	}
-
-	parentSpan := ctx.(context.Context).Value(trace.TRACER_PARENT_SPAN_CTX_KEY)
-	subSpan := opentracing.StartSpan(
-		gormOperationName,
-		opentracing.ChildOf(parentSpan.(opentracing.SpanContext)),
-		opentracing.Tag{Key: string(ext.Component), Value: "gorm"},
+	ctx, ok := iCtx.(context.Context)
+	if !ok {
+		return
+	}
+	span, _ := opentracing.StartSpanFromContext(ctx, gormOperationName,
+		opentracing.Tag{Key: string(ext.Component), Value: gormComponent},
 		ext.SpanKindRPCClient,
 	)
 	// 利用db实例去传递span
-	scope.InstanceSet(gormSpanKey, subSpan)
+	scope.InstanceSet(gormSpanKey, span)
 	return
 }
 
 func afterV1(scope *gorm.Scope) {
 	// 从GORM的DB实例中取出span
-	_span, isExist := scope.InstanceGet(gormSpanKey)
+	iSpan, isExist := scope.InstanceGet(gormSpanKey)
 	if !isExist {
 		return
 	}
 
 	// 断言进行类型转换
-	span, ok := _span.(opentracing.Span)
+	span, ok := iSpan.(opentracing.Span)
 	if !ok {
 		return
 	}
@@ -66,7 +66,6 @@ func afterV1(scope *gorm.Scope) {
 	}
 
 	// sql
-	//db.Dialector.Explain(db.Statement.SQL.String(), db.Statement.Vars...))
 	span.LogFields(tracerLog.String("sql", explainSQL(scope.SQL, `'`, scope.SQLVars...)))
 	return
 }
