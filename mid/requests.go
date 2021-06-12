@@ -20,7 +20,7 @@ type reqTrace struct {
 }
 
 func (m *reqTrace) ReqMid(ctx context.Context, req *http.Request) (*http.Request, error) {
-	subSpan, _ := opentracing.StartSpanFromContext(ctx, req.Method+"_request",
+	subSpan, _ := opentracing.StartSpanFromContext(getContext(ctx), req.Method+"_request",
 		opentracing.Tag{Key: string(ext.Component), Value: "request"},
 		opentracing.Tag{Key: "url", Value: req.URL},
 		opentracing.Tag{Key: "method", Value: req.Method},

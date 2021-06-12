@@ -36,6 +36,7 @@ func SetGinTraceMid() gin.HandlerFunc {
 			defer parentSpan.Finish()
 		}
 		c.Request = c.Request.WithContext(opentracing.ContextWithSpan(c.Request.Context(), parentSpan))
+		c.Set(_HTTP_FRAME_CTX_KEY, _HTTP_FRAME_GIN)
 		c.Next()
 	}
 }

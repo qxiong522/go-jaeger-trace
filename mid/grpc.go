@@ -60,7 +60,7 @@ func GRPCServerTracerInterceptor(ctx context.Context, req interface{}, info *grp
 	} else {
 		// 如果请求有带 trace id 则生成
 		parentSpan = opentracing.StartSpan(
-			"grpc_"+info.FullMethod,
+			"grpc:"+info.FullMethod,
 			opentracing.ChildOf(spanContext),
 			opentracing.Tag{Key: string(ext.Component), Value: grpcServerComponent},
 			ext.SpanKindRPCServer,
@@ -75,7 +75,7 @@ func GRPCServerTracerInterceptor(ctx context.Context, req interface{}, info *grp
 func GRPCClientTracerInterceptor(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn,
 	invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 
-	span, _ := opentracing.StartSpanFromContext(ctx, "grpc_"+method,
+	span, _ := opentracing.StartSpanFromContext(getContext(ctx), "grpc:"+method,
 		opentracing.Tag{Key: string(ext.Component), Value: grpcClientComponent},
 		opentracing.Tag{Key: "method", Value: method},
 		ext.SpanKindRPCClient,

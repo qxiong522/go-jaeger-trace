@@ -1,7 +1,6 @@
 package tracemid
 
 import (
-	"context"
 	"database/sql/driver"
 	"fmt"
 	"reflect"
@@ -31,8 +30,8 @@ func beforeV1(scope *gorm.Scope) {
 	if !ok {
 		return
 	}
-	ctx, ok := iCtx.(context.Context)
-	if !ok {
+	ctx := getContext(iCtx)
+	if ctx != nil {
 		return
 	}
 	span, _ := opentracing.StartSpanFromContext(ctx, gormOperationName,

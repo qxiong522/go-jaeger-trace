@@ -8,7 +8,7 @@ import (
 )
 
 func before(db *gorm.DB) {
-	span, _ := opentracing.StartSpanFromContext(db.Statement.Context, gormOperationName,
+	span, _ := opentracing.StartSpanFromContext(getContext(db.Statement.Context), gormOperationName,
 		opentracing.Tag{Key: string(ext.Component), Value: gormComponent},
 		ext.SpanKindRPCClient,
 	)
