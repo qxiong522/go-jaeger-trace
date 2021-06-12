@@ -30,11 +30,7 @@ func beforeV1(scope *gorm.Scope) {
 	if !ok {
 		return
 	}
-	ctx := getContext(iCtx)
-	if ctx != nil {
-		return
-	}
-	span, _ := opentracing.StartSpanFromContext(ctx, gormOperationName,
+	span, _ := opentracing.StartSpanFromContext(getContext(iCtx), gormOperationName,
 		opentracing.Tag{Key: string(ext.Component), Value: gormComponent},
 		ext.SpanKindRPCClient,
 	)
